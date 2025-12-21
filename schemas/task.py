@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class TaskBase(BaseModel):
     title: str
-    description: str | None
+    description: str | None = None
     status: str
 
 
@@ -21,6 +21,12 @@ class TaskReadSimple(TaskBase):
 class TaskRead(TaskReadSimple):
     project: "ProjectReadSimple"
     logs: list["TaskLogReadSimple"]
+
+
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
 
 
 from schemas.project import ProjectReadSimple  # noqa

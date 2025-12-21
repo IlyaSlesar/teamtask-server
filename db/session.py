@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession
 )
 
-from settings import settings
+from core.settings import settings
 from db.base import Base
 
 
