@@ -19,7 +19,7 @@ class UserReadSimple(UserBase):
 class UserRead(UserReadSimple):
     projects: list["ProjectReadSimple"]
     owned_projects: list["ProjectReadSimple"]
-    log: list["TaskLogReadSimple"]
+    logs: list["TaskLogReadSimple"]
 
 
 from schemas.project import ProjectReadSimple  # noqa

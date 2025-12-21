@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncSession
 )
-from settings import settings
 
+from settings import settings
 from db.base import Base
 
 
