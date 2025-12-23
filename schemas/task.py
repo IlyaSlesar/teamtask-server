@@ -20,7 +20,7 @@ class TaskReadSimple(TaskBase):
 
 class TaskRead(TaskReadSimple):
     project: "ProjectReadSimple"
-    logs: list["TaskLogReadSimple"]
+    logs: list["TaskLogRead"]
 
 
 class TaskUpdate(BaseModel):
@@ -30,4 +30,4 @@ class TaskUpdate(BaseModel):
 
 
 from schemas.project import ProjectReadSimple  # noqa
-from schemas.tasklog import TaskLogReadSimple  # noqa
+from schemas.tasklog import TaskLogRead  # noqa

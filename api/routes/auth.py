@@ -54,7 +54,7 @@ async def create_user(
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Username already taken."
+            detail="Имя пользователя уже занято."
         )
     await session.refresh(db_user)
     return db_user
@@ -78,7 +78,7 @@ async def login_for_access_token(
     )).scalar_one_or_none()
     incorrect = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
+        detail="Неверное имя пользователя или пароль",
         headers={"WWW-Authenticate": "Bearer"},
     )
     if not user:

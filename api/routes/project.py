@@ -24,6 +24,7 @@ from sqlalchemy.exc import (
 
 from db.session import get_db
 from db.models import User, Project, Task
+from schemas.user import UserBase
 from schemas.project import (
     ProjectReadSimple,
     ProjectRead,
@@ -132,7 +133,71 @@ async def create_task_in_project(
         'Created a task'
     )
     await session.commit()
+    await session.refresh(db_task)
     return db_task
+
+
+@router.post("/{id}/user")
+async def add_user_to_project(
+    id: Annotated[int, Path(title="project ID")],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    user: UserBase
+):
+    project = await get_project_by_id(session, id, current_user.id)
+    if project is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "Проект с таким ID не найден или вы не имеете к нему доступа."
+        )
+    if project.owner_id != current_user.id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Необходимо быть владельцем проекта для этого действия."
+        )
+    user = (await session.execute(
+        select(User)
+        .where(User.username == user.username)
+    )).scalars().one_or_none()
+    if user is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "Пользователь с таким именем не найден"
+        )
+    if user not in project.users:
+        project.users.append(user)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/{project_id}/user/{user_id}")
+async def remove_user_from_project(
+    project_id: Annotated[int, Path(title="project ID")],
+    user_id: Annotated[int, Path(title="user ID")],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    project = await get_project_by_id(session, project_id, current_user.id)
+    if project is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "Проект с таким ID не найден или вы не имеете к нему доступа."
+        )
+    if project.owner_id != current_user.id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Необходимо быть владельцем проекта для этого действия."
+        )
+    user = await session.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "Пользователь с таким ID не найден"
+        )
+    if user in project.users:
+        project.users.remove(user)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.patch("/{id}", response_model=ProjectRead)
@@ -147,20 +212,6 @@ async def update_project(
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     if update.title is not None:
         project.title = update.title
-    if update.users_add is not None:
-        users_to_add = [
-            await session.get(User, user_id) for user_id in update.users_add
-        ]
-        for user in users_to_add:
-            if user not in project.users:
-                project.users.append(user)
-    if update.users_remove is not None:
-        users_to_remove = [
-            await session.get(User, user_id) for user_id in update.users_remove
-        ]
-        for user in users_to_remove:
-            if user in project.users:
-                project.users.remove(user)
     await session.commit()
     return (await session.execute(
         select(Project)
@@ -180,8 +231,16 @@ async def delete_project(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     project = await get_project_by_id(session, id, current_user.id)
-    if project is None or project.owner_id != current_user.id:
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if project is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "Проект с таким ID не найден или вы не имеете к нему доступа."
+        )
+    if project.owner_id != current_user.id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Чтобы удалить проект, необходимо быть его владельцем."
+        )
     await session.delete(project)
     await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

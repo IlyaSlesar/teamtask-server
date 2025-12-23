@@ -71,8 +71,9 @@ async def update_task(
     updated_fields = []
     for field_name, field_value in update:
         if field_value is not None:
-            setattr(task, field_name, field_value)
-            updated_fields.append(field_name)
+            if getattr(task, field_name) != field_value:
+                setattr(task, field_name, field_value)
+                updated_fields.append(field_name)
     await log_task_modification(
         session,
         current_user.id,

@@ -38,7 +38,7 @@ async def get_current_user(
         .options(
             selectinload(User.projects),
             selectinload(User.owned_projects),
-            selectinload(User.logs)
+            selectinload(User.logs),
         )
         .where(User.username == token_data.username)
     )).scalar_one_or_none()

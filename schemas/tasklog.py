@@ -1,18 +1,14 @@
+from datetime import datetime
+
 from pydantic import BaseModel
-
-
-class TaskLogReadSimple(BaseModel):
-    id: int
-    task_id: int
-    user_id: int
-    action: str
 
 
 class TaskLogRead(BaseModel):
     id: int
-    task: "TaskReadSimple"
-    user: "UserReadSimple"
+    task_id: int
+    user_id: int
     action: str
+    timestamp: datetime
 
 
 from schemas.task import TaskReadSimple  # noqa

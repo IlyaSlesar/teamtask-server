@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import (
     String,
     Text,
@@ -120,6 +122,10 @@ class TaskLog(Base):
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     action: Mapped[str] = mapped_column(String(255), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now()
+    )
 
     task: Mapped[Task] = relationship(
         back_populates="logs",

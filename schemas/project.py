@@ -24,8 +24,6 @@ class ProjectRead(ProjectReadSimple):
 
 class ProjectUpdate(BaseModel):
     title: str | None = None
-    users_add: list[int] | None = None
-    users_remove: list[int] | None = None
 
 
 from schemas.user import UserReadSimple  # noqa
